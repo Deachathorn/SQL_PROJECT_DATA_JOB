@@ -37,13 +37,42 @@ INNER JOIN
 ORDER BY
     tpj.salary_year_avg DESC
 
-/*
-Here's the breakdown of the most demanded skills for data analysts in 2023, based on job postings:
-SQL is leading with a bold count of 8.
-Python follows closely with a bold count of 7.
-Tableau is also highly sought after, with a bold count of 6.
-Other skills like R, Snowflake, Pandas, and Excel show varying degrees of demand.
 
+-- Count Skills To Find What skills are required for the top-paying jobs
+WITH top_paying_jobs AS (
+    SELECT
+        job_id,
+        name AS company_name,
+        job_title,
+        salary_year_avg
+    FROM
+        job_postings_fact jpf
+    LEFT JOIN
+        company_dim cd ON cd.company_id = jpf.company_id
+    WHERE
+        job_title_short = 'Data Analyst'
+        AND job_work_from_home = FALSE
+        AND salary_year_avg IS NOT NULL
+    ORDER BY
+        salary_year_avg DESC
+    LIMIT
+        10
+)
+SELECT
+    sd.skills,
+    COUNT(sd.skills) AS skill_count
+FROM
+    top_paying_jobs tpj
+INNER JOIN
+    skills_job_dim sjd ON sjd.job_id = tpj.job_id
+INNER JOIN
+    skills_dim sd ON sd.skill_id = sjd.skill_id
+GROUP BY
+    sd.skills
+ORDER BY
+    skill_count DESC
+
+/*
 Result
 ======
 [
